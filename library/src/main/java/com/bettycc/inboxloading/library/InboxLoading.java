@@ -4,13 +4,10 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 /**
@@ -21,6 +18,7 @@ public class InboxLoading extends View {
     public static final int SWEEP_RANGE = 270;
     public static final int SWEEP_DURATION = 600;
     public static final int ROTATE_DURATION = 2000;
+    public int CIRCLE_STROKE_WIDTH;
     private float mCircleSize;
     private float mViewSize;
     private float mFastDegree;
@@ -31,8 +29,11 @@ public class InboxLoading extends View {
     private ValueAnimator mSweepAppearAnimator;
 
     private int[] colorRessources = new int[]{
-
+            R.color.blue,
+            R.color.red,
+            R.color.yellow,
     };
+    private int mColorIndex = 0;
 
     public InboxLoading(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -42,11 +43,12 @@ public class InboxLoading extends View {
     private void init() {
         mCircleSize = dipToPx(80);
         mViewSize = dipToPx(100);
+        CIRCLE_STROKE_WIDTH = (int)dipToPx(5);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension((int) mViewSize, (int)mViewSize);
+        setMeasuredDimension((int) mViewSize, (int) mViewSize);
     }
 
     @Override
@@ -54,17 +56,20 @@ public class InboxLoading extends View {
         super.onFinishInflate();
     }
 
+    private void cycleColorIndex() {
+        mColorIndex = (mColorIndex + 1)%colorRessources.length;
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         Paint paint = new Paint();
-        paint.setColor(Color.BLUE);
+        paint.setColor(getResources().getColor(colorRessources[mColorIndex]));
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(2);
+        paint.setStrokeWidth(CIRCLE_STROKE_WIDTH);
         paint.setAntiAlias(true);
-        RectF rect = new RectF((mViewSize - mCircleSize)/2,
-                (mViewSize - mCircleSize)/2,
+        RectF rect = new RectF((mViewSize - mCircleSize) / 2,
+                (mViewSize - mCircleSize) / 2,
                 mCircleSize,
                 mCircleSize);
 
@@ -74,7 +79,7 @@ public class InboxLoading extends View {
     }
 
     private float dipToPx(float dip) {
-        return dip*getContext().getResources().getDisplayMetrics().density;
+        return dip * getContext().getResources().getDisplayMetrics().density;
     }
 
     public void startLoading() {
@@ -180,7 +185,9 @@ public class InboxLoading extends View {
 
         @Override
         public void onAnimationEnd(Animator animator) {
+            cycleColorIndex();
             mSweepAppearAnimator.start();
+            invalidate();
         }
 
         @Override
