@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -34,6 +35,8 @@ public class InboxLoading extends View {
             R.color.yellow,
     };
     private int mColorIndex = 0;
+    private boolean mStop;
+    private ValueAnimator mRotateAnimator;
 
     public InboxLoading(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -42,7 +45,7 @@ public class InboxLoading extends View {
 
     private void init() {
         mCircleSize = dipToPx(80);
-        mViewSize = dipToPx(100);
+        mViewSize = dipToPx(90);
         CIRCLE_STROKE_WIDTH = (int)dipToPx(5);
     }
 
@@ -54,6 +57,7 @@ public class InboxLoading extends View {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        initAnimator();
     }
 
     private void cycleColorIndex() {
@@ -63,19 +67,34 @@ public class InboxLoading extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
+        Paint paintBorder = new Paint();
+//        setBorderColor(Color.WHITE);
+        paintBorder.setAntiAlias(true);
+//        paintBorder.setShadowLayer(4.0f, 0.0f, 0.0f, Color.BLACK);
+//        setLayerType(LAYER_TYPE_SOFTWARE, paintBorder);
+
+//        Paint cp = new Paint();
+        paintBorder.setColor(Color.WHITE);
+        paintBorder.setStyle(Paint.Style.FILL);
+        paintBorder.setAntiAlias(true);
+        canvas.drawCircle(mViewSize/2, mViewSize/2, mViewSize/2, paintBorder);
+
         Paint paint = new Paint();
         paint.setColor(getResources().getColor(colorRessources[mColorIndex]));
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(CIRCLE_STROKE_WIDTH);
         paint.setAntiAlias(true);
-        RectF rect = new RectF((mViewSize - mCircleSize) / 2,
-                (mViewSize - mCircleSize) / 2,
+        RectF rect = new RectF((mViewSize - mCircleSize) / 1,
+                (mViewSize - mCircleSize) / 1,
                 mCircleSize,
                 mCircleSize);
 
         int startAngle = (int) (mRotateDegree + mRotateDegreeOffset);
-        System.out.println("startAngle = " + startAngle + "\tsweep = " + mSweep);
+//        System.out.println("startAngle = " + startAngle + "\tsweep = " + mSweep);
         canvas.drawArc(rect, startAngle, mSweep, false, paint);
+
     }
 
     private float dipToPx(float dip) {
@@ -83,14 +102,19 @@ public class InboxLoading extends View {
     }
 
     public void startLoading() {
-        ValueAnimator rotateAnimator = ValueAnimator.ofFloat(0f, 360f);
+        mStop = false;
+        mRotateAnimator.start();
+        mSweepAppearAnimator.start();
+    }
+
+    private void initAnimator() {
+        mRotateAnimator = ValueAnimator.ofFloat(0f, 360f);
         RotateAnimatorListener rotateAnimatorListener = new RotateAnimatorListener();
-        rotateAnimator.addUpdateListener(rotateAnimatorListener);
-        rotateAnimator.addListener(rotateAnimatorListener);
-        rotateAnimator.setDuration(ROTATE_DURATION);
-        rotateAnimator.setRepeatMode(ValueAnimator.RESTART);
-        rotateAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        rotateAnimator.start();
+        mRotateAnimator.addUpdateListener(rotateAnimatorListener);
+        mRotateAnimator.addListener(rotateAnimatorListener);
+        mRotateAnimator.setDuration(ROTATE_DURATION);
+        mRotateAnimator.setRepeatMode(ValueAnimator.RESTART);
+        mRotateAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
         SweepAppearListener sweepAppearListener = new SweepAppearListener();
         mSweepAppearAnimator = ValueAnimator.ofFloat(0f, SWEEP_RANGE);
@@ -105,17 +129,29 @@ public class InboxLoading extends View {
         mSweepDispearAnimator.addListener(sweepDisppearListener);
         mSweepDispearAnimator.setInterpolator(new DecelerateInterpolator());
         mSweepDispearAnimator.setDuration(SWEEP_DURATION);
+    }
 
-        mSweepAppearAnimator.start();
+    public void stop() {
+        mStop = true;
+    }
+
+    public void start() {
+        startLoading();
+    }
+
+    public void hide() {
+        stop();
     }
 
     private class RotateAnimatorListener implements ValueAnimator.AnimatorUpdateListener, Animator.AnimatorListener {
 
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
-            mRotateDegree = v;
-            invalidate();
+            if (!mStop) {
+                float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
+                mRotateDegree = v;
+                invalidate();
+            }
         }
 
         @Override
@@ -142,9 +178,11 @@ public class InboxLoading extends View {
 
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
-            mSweep = v;
-            invalidate();
+            if (!mStop) {
+                float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
+                mSweep = v;
+                invalidate();
+            }
         }
 
         @Override
@@ -154,9 +192,11 @@ public class InboxLoading extends View {
 
         @Override
         public void onAnimationEnd(Animator animator) {
-            mSweepDispearAnimator.start();
-            mRotateDegreeOffset += SWEEP_RANGE;
-            invalidate();
+            if (!mStop) {
+                mSweepDispearAnimator.start();
+                mRotateDegreeOffset += SWEEP_RANGE;
+                invalidate();
+            }
         }
 
         @Override
@@ -173,9 +213,11 @@ public class InboxLoading extends View {
 
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
-            mSweep = v;
-            invalidate();
+            if (!mStop) {
+                float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
+                mSweep = v;
+                invalidate();
+            }
         }
 
         @Override
@@ -185,9 +227,11 @@ public class InboxLoading extends View {
 
         @Override
         public void onAnimationEnd(Animator animator) {
-            cycleColorIndex();
-            mSweepAppearAnimator.start();
-            invalidate();
+            if (!mStop) {
+                cycleColorIndex();
+                mSweepAppearAnimator.start();
+                invalidate();
+            }
         }
 
         @Override

@@ -4,6 +4,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.bettycc.inboxloading.library.InboxLoading;
 
@@ -39,5 +40,17 @@ public class MyActivity extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void stop(View view) {
+        mInboxLoading.stop();
+    }
+
+    public void hide(View view) {
+        mInboxLoading.hide();
+    }
+
+    public void start(View view) {
+        mInboxLoading.start();
     }
 }
