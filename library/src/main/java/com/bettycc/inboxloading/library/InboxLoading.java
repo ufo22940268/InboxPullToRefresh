@@ -1,6 +1,8 @@
 package com.bettycc.inboxloading.library;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 /**
@@ -37,6 +40,7 @@ public class InboxLoading extends View {
     private int mColorIndex = 0;
     private boolean mStop;
     private ValueAnimator mRotateAnimator;
+    private AnimatorSet mScaleAnimatorSet;
 
     public InboxLoading(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -129,6 +133,22 @@ public class InboxLoading extends View {
         mSweepDispearAnimator.addListener(sweepDisppearListener);
         mSweepDispearAnimator.setInterpolator(new DecelerateInterpolator());
         mSweepDispearAnimator.setDuration(SWEEP_DURATION);
+
+        mScaleAnimatorSet = new AnimatorSet();
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(this, "scaleX", 1f, 0f);
+        ValueAnimator.AnimatorUpdateListener scaleListener = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                if (mStop) {
+                    ((View) getParent()).invalidate();
+                }
+            }
+        };
+        scaleX.addUpdateListener(scaleListener);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(this, "scaleY", 1f, 0f);
+        scaleY.addUpdateListener(scaleListener);
+        mScaleAnimatorSet.play(scaleX).with(scaleY);
+        mScaleAnimatorSet.setInterpolator(new AccelerateInterpolator());
     }
 
     public void stop() {
@@ -141,6 +161,8 @@ public class InboxLoading extends View {
 
     public void hide() {
         stop();
+
+        mScaleAnimatorSet.start();
     }
 
     private class RotateAnimatorListener implements ValueAnimator.AnimatorUpdateListener, Animator.AnimatorListener {
