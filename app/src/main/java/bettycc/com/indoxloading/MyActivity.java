@@ -11,15 +11,15 @@ import com.bettycc.inboxloading.library.InboxLoading;
 
 public class MyActivity extends ActionBarActivity {
 
-    private InboxLoading mInboxLoading;
+//    private InboxLoading mInboxLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-        mInboxLoading = (InboxLoading) findViewById(R.id.loading);
-        mInboxLoading.startLoading();
+//        mInboxLoading = (InboxLoading) findViewById(R.id.loading);
+//        mInboxLoading.startLoading();
     }
 
 
@@ -43,14 +43,14 @@ public class MyActivity extends ActionBarActivity {
     }
 
     public void stop(View view) {
-        mInboxLoading.stop();
+//        mInboxLoading.stop();
     }
 
     public void hide(View view) {
-        mInboxLoading.hide();
+//        mInboxLoading.hide();
     }
 
     public void start(View view) {
-        mInboxLoading.start();
+//        mInboxLoading.start();
     }
 }
