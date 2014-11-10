@@ -26,9 +26,10 @@ public class InboxLoading extends View {
     private float mCircleSize;
     private float mViewSize;
     private float mFastDegree;
-    private float mSweep;
+    private float mSweepLength;
     private float mRotateDegree;
     private float mRotateDegreeOffset;
+    private float mRotateDegreeOffset2;
     private ValueAnimator mSweepDispearAnimator;
     private ValueAnimator mSweepAppearAnimator;
 
@@ -42,6 +43,22 @@ public class InboxLoading extends View {
     private ValueAnimator mRotateAnimator;
     private AnimatorSet mScaleAnimatorSet;
 
+    /**
+     * How far it can be pull and the rotate animates.
+     */
+    private float mPullRange;
+
+    /**
+     * When the sweep range reach it, then sweep stop increasing.
+     */
+    private float mPullSweepRange;
+
+    /**
+     * When rotate range reach it, stop increasing start rotate degree.
+     */
+    private float mPullRotateDegreeRange;
+    private float mAlpha;
+
     public InboxLoading(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -50,6 +67,11 @@ public class InboxLoading extends View {
     private void init() {
         mCircleSize = dipToPx(80);
         mViewSize = dipToPx(90);
+
+        mPullRange = dipToPx(100);
+        mPullSweepRange = 300;
+        mPullRotateDegreeRange = dipToPx(20);
+
         CIRCLE_STROKE_WIDTH = (int)dipToPx(5);
     }
 
@@ -74,12 +96,8 @@ public class InboxLoading extends View {
 
         setLayerType(LAYER_TYPE_SOFTWARE, null);
         Paint paintBorder = new Paint();
-//        setBorderColor(Color.WHITE);
         paintBorder.setAntiAlias(true);
-//        paintBorder.setShadowLayer(4.0f, 0.0f, 0.0f, Color.BLACK);
-//        setLayerType(LAYER_TYPE_SOFTWARE, paintBorder);
 
-//        Paint cp = new Paint();
         paintBorder.setColor(Color.WHITE);
         paintBorder.setStyle(Paint.Style.FILL);
         paintBorder.setAntiAlias(true);
@@ -90,14 +108,14 @@ public class InboxLoading extends View {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(CIRCLE_STROKE_WIDTH);
         paint.setAntiAlias(true);
+        paint.setAlpha((int) (255*mAlpha));
         RectF rect = new RectF((mViewSize - mCircleSize) / 1,
                 (mViewSize - mCircleSize) / 1,
                 mCircleSize,
                 mCircleSize);
 
-        int startAngle = (int) (mRotateDegree + mRotateDegreeOffset);
-//        System.out.println("startAngle = " + startAngle + "\tsweep = " + mSweep);
-        canvas.drawArc(rect, startAngle, mSweep, false, paint);
+        int startAngle = (int) (mRotateDegree + mRotateDegreeOffset + mRotateDegreeOffset2);
+        canvas.drawArc(rect, startAngle, mSweepLength, false, paint);
 
     }
 
@@ -165,6 +183,20 @@ public class InboxLoading extends View {
         mScaleAnimatorSet.start();
     }
 
+    public void onScrollTo(int y) {
+        float pullPercent = y > mPullRange ? 1 : y / mPullRange;
+        if (pullPercent < 1) {
+            mRotateDegreeOffset = pullPercent * mPullRotateDegreeRange;
+            mSweepLength = pullPercent * mPullSweepRange;
+        } else {
+            float v = y - mPullRange;
+            mRotateDegreeOffset2 = v;
+        }
+
+        mAlpha = pullPercent;
+        invalidate();
+    }
+
     private class RotateAnimatorListener implements ValueAnimator.AnimatorUpdateListener, Animator.AnimatorListener {
 
         @Override
@@ -202,7 +234,7 @@ public class InboxLoading extends View {
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
             if (!mStop) {
                 float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
-                mSweep = v;
+                mSweepLength = v;
                 invalidate();
             }
         }
@@ -237,7 +269,7 @@ public class InboxLoading extends View {
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
             if (!mStop) {
                 float v = ((Float) valueAnimator.getAnimatedValue()).floatValue();
-                mSweep = v;
+                mSweepLength = v;
                 invalidate();
             }
         }

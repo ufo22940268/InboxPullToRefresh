@@ -2,7 +2,6 @@ package com.bettycc.inboxloading.library;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -37,10 +36,11 @@ public class InboxPullToRefreshView extends LinearLayout {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mPreY = event.getY();
-                break;
+                return true;
             case MotionEvent.ACTION_MOVE:
-                float dy = event.getY() - mPreY;
-                mRefreshView.scrollBy(0, (int) dy);
+                float y = event.getY();
+                System.out.println("InboxPullToRefreshView.onTouchEvent" + y);
+                mRefreshView.onScrollTo((int) y);
                 break;
         }
 
